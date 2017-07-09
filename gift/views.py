@@ -6,13 +6,13 @@ from django.urls import reverse_lazy
 from django.utils.http import is_safe_url
 from django.views.generic import View
 from .models import Option, Student, Transaction
-from .forms import LoginForm,TransactionForm
+from .forms import LoginForm, TransactionForm
 from django.db.models import F
 from datetime import datetime
 
 
 class LoginView(View):
-    """
+    """7
     View class for handling login functionality.
     """
     template_name = 'gift/login.html'
@@ -42,6 +42,7 @@ class LoginView(View):
             if user is not None:
                 if not is_safe_url(url=redirect_to, host=request.get_host()):
                     auth.login(request=request, user=user)
+
                     return redirect('gift:option')
                 else:
                     return redirect(redirect_to)
@@ -71,16 +72,16 @@ class DonateView(LoginRequiredMixin, View):
         args = dict(form=TransactionForm(None))
         return render(request, self.template_name, args)
 
-    def post(self,request):
+    def post(self, request):
         print(request)
         form = TransactionForm(request.POST)
         if form.is_valid():
             transactionid = form.cleaned_data.get('transactionid')
-            t= Transaction()
+            t = Transaction()
             t.id_of_donater = request.user.id
-            t.webmail_of_donater= request.user.username
-            t.transactionid=transactionid
-            t.created_at=datetime.now()
+            t.webmail_of_donater = request.user.username
+            t.transactionid = transactionid
+            t.created_at = datetime.now()
             t.save()
             template_name = 'gift/thankyou.html'
             return render(request, template_name)
@@ -95,22 +96,18 @@ class ChoiceView(LoginRequiredMixin, View):
 
     choices = Option.objects.exclude(price=0)
     endorement_fund = Option.objects.get(price=0)
-
     context = {'choices': choices,
                'endorement_fund': endorement_fund}
 
     def get(self, request):
         u = Student.objects.get(user=request.user)
-        if int(u.choice) ==-1:
-            print("choice not filled yet")
+        if int(u.choice) == -1:
             return render(request, self.template_name, self.context)
         else:
-            print("already filled")
-            return render(request,'gift/alreadyfilled.html')
+            return render(request, 'gift/alreadyfilled.html')
 
     def post(self, request):
         choice = request.POST.get("choice", "")
-        print(choice)
         if int(choice) != 100:
             # selected=self.choices[int(choice)-1].name
             option = Option.objects.get(pk=choice)
@@ -123,7 +120,7 @@ class ChoiceView(LoginRequiredMixin, View):
 
         u = Student.objects.get(user=request.user)
         u.choice = choice
-        u.choice_filled_at=datetime.now()
+        u.choice_filled_at = datetime.now()
         u.save()
 
         template_name = 'gift/thankyou.html'
@@ -141,4 +138,3 @@ class LogoutView(LoginRequiredMixin, View):
     def get(self, request):
         auth.logout(request=request)
         return redirect('gift:login')
-
